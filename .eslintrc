@@ -1,0 +1,6 @@
+{
+    "extends": "vgno",
+    "ecmaFeatures": {
+        "generators": true
+    }
+}
