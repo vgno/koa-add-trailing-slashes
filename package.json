@@ -1,7 +1,7 @@
 {
   "name": "koa-add-trailing-slashes",
   "version": "1.0.0",
-  "description": "Koa middleware that makes sure all requests have trailing slashes",
+  "description": "Koa middleware that makes sure all requests have a trailing slashes",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
@@ -18,7 +18,8 @@
     "middleware",
     "slash",
     "trailing",
-    "redirect"
+    "redirect",
+    "add"
   ],
   "author": "VG",
   "license": "MIT",

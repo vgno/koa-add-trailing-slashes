@@ -1,6 +1,6 @@
 # koa-add-trailing-slashes
 
-Koa middleware that adds trailing slashes to a URL if it not already has it.
+Koa middleware that adds trailing slashes on an URL.
 
 [![Build Status](https://img.shields.io/travis/vgno/koa-add-trailing-slashes/master.svg?style=flat-square)](http://travis-ci.org/vgno/koa-add-trailing-slashes) [![Coverage Status](https://img.shields.io/coveralls/vgno/koa-add-trailing-slashes/master.svg?style=flat-square)](https://coveralls.io/r/vgno/koa-add-trailing-slashes) [![npm](https://img.shields.io/npm/v/koa-add-trailing-slashes.svg?style=flat-square)](https://www.npmjs.com/package/koa-add-trailing-slashes)
 
@@ -20,7 +20,10 @@ app.use(require('koa-add-trailing-slashes')(opts));
 
 ### Options
 
- - `index` - Default file name, defaults to 'index.html'. Will automatically add slashes to folders that contain this index file, expected to be used with `koa-static`. Set to false to disable this.
+ - `index` - Default file name, defaults to 'index.html'. Will automatically add slashes to folders that contain this index file, expected to be used with `koa-static`. Defaults to `index.html`.
+ - `defer` - If true, serves after yield next, allowing any downstream middleware to respond first. Defaults to `true`.
+ - `chained` - If the middleware should continue modifying the url if it detects that a redirect already have been performed. Defaults to `true`.
+
 
 ## Example
 ```js
@@ -39,11 +42,12 @@ app.listen(3000);
 ```
 
 ## Important
-Make sure this us added before an eventual [koa-static](https://github.com/koajs/static) to make sure requests to files are not changed and managed correctly.
+Make sure this is added before an eventual [koa-static](https://github.com/koajs/static) middleware to make sure requests to files are not changed and managed correctly. This because it will not rewrite the URL if a `body` has been set along with status `200`. Once exception to this is if the `body` is the index file described above, to make sure a trailing slash is added to the end of a folder that serves the index file.
 
-Will not rewrite the URL if a `body` has been set in general. The special case being if the `body` is the index file described above.
+If all paths always should be rewritten one can set `defer` to `false`.
 
-For example if the path in the browser is `/foo` and `koa-static` resolves that to `foo/index.html` internally and `opts.index` is not disabled the path will end up as `/foo/`.
+__Example__
+If the url in the browser is `/foo` and `koa-static` resolves that to `foo/index.html` internally along with `opts.index` matching the filename, in this case `index.html`, the path will end up as `/foo/`.
 
 ## License
 MIT
