@@ -17,29 +17,29 @@ function addTrailingSlashes(opts) {
         opts.chained = opts.chained || true;
     }
 
-    return function* (next) {
+    return async function(ctx, next) {
         if (opts.defer) {
-            yield next;
+            await next();
         }
 
-        var path;
+        let path;
 
         // We have already done a redirect and we will continue if we are in chained mode
-        if (opts.chained && this.status === 301) {
-            path = getPath(this.response.get('Location'), this.querystring);
-        } else if (this.status !== 301) {
-            path = getPath(this.originalUrl, this.querystring);
+        if (opts.chained && ctx.status === 301) {
+            path = getPath(ctx.response.get('Location'), ctx.querystring);
+        } else if (ctx.status !== 301) {
+            path = getPath(ctx.originalUrl, ctx.querystring);
         }
 
-        if (path && noBodyOrIndex(this.status, this.body, path, opts.index) && missingSlash(path)) {
-            var query = this.querystring.length ? '?' + this.querystring : '';
+        if (path && noBodyOrIndex(ctx.status, ctx.body, path, opts.index) && missingSlash(path)) {
+            const query = ctx.querystring.length ? '?' + ctx.querystring : '';
 
-            this.status = 301;
-            this.redirect(path + '/' + query);
+            ctx.status = 301;
+            ctx.redirect(path + '/' + query);
         }
 
         if (!opts.defer) {
-            yield next;
+            await next();
         }
     };
 }
