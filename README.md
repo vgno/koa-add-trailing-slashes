@@ -2,6 +2,8 @@
 
 Koa middleware that adds trailing slashes on an URL.
 
+**Notice: koa-add-trailing-slashes@2 supports koa@2; if you want to use this module with koa@1, please use koa-add-trailing-slashes@1.**
+
 [![Build Status](https://img.shields.io/travis/vgno/koa-add-trailing-slashes/master.svg?style=flat-square)](http://travis-ci.org/vgno/koa-add-trailing-slashes) [![Coverage Status](https://img.shields.io/coveralls/vgno/koa-add-trailing-slashes/master.svg?style=flat-square)](https://coveralls.io/r/vgno/koa-add-trailing-slashes) [![npm](https://img.shields.io/npm/v/koa-add-trailing-slashes.svg?style=flat-square)](https://www.npmjs.com/package/koa-add-trailing-slashes)
 
 ## Installation
@@ -11,8 +13,8 @@ npm install koa-add-trailing-slashes
 
 ## API
 ```js
-var Koa = require('koa');
-var app = new Koa();
+const Koa = require('koa');
+const app = new Koa();
 app.use(require('koa-add-trailing-slashes')(opts));
 ```
 
@@ -27,15 +29,15 @@ app.use(require('koa-add-trailing-slashes')(opts));
 
 ## Example
 ```js
-var Koa = require('koa');
-var addTrailingSlashes = require('koa-add-trailing-slashes');
+const Koa = require('koa');
+const addTrailingSlashes = require('koa-add-trailing-slashes');
 
-var app = new Koa();
+const app = new Koa();
 
 app.use(addTrailingSlashes());
 
 app.use(ctx => {
-  this.body = 'Hello World';
+  ctx.body = 'Hello World';
 });
 
 app.listen(3000);
