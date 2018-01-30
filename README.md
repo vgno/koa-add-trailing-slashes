@@ -11,8 +11,8 @@ npm install koa-add-trailing-slashes
 
 ## API
 ```js
-var koa = require('koa');
-var app = koa();
+var Koa = require('koa');
+var app = new Koa();
 app.use(require('koa-add-trailing-slashes')(opts));
 ```
 
@@ -27,14 +27,14 @@ app.use(require('koa-add-trailing-slashes')(opts));
 
 ## Example
 ```js
-var koa = require('koa');
+var Koa = require('koa');
 var addTrailingSlashes = require('koa-add-trailing-slashes');
 
-var app = koa();
+var app = new Koa();
 
 app.use(addTrailingSlashes());
 
-app.use(function *(){
+app.use(ctx => {
   this.body = 'Hello World';
 });
 
