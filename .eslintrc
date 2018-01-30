@@ -1,6 +1,6 @@
 {
-    "extends": "vgno",
-    "ecmaFeatures": {
-        "generators": true
-    }
+  "extends": "vgno",
+  "parserOptions": {
+    "ecmaVersion": 2017
+  }
 }

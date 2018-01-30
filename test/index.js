@@ -1,162 +1,139 @@
 'use strict';
 
-var expect = require('expect');
-var addTrailingSlashes = require('../index.js');
+const expect = require('expect');
+const addTrailingSlashes = require('../');
 
-describe('koa-add-trailing-slashes', function() {
-    describe('defer = false', function() {
-        it('should redirect on url and path has no trailing slash', function() {
-            var mock = createMock('/foo');
-            var addTrailingSlashesMock = addTrailingSlashes({defer: false}).bind(mock.this);
-            var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-            addTrailingSlashesMockGenerator.next();
+describe('koa-add-trailing-slashes', () => {
+    describe('defer = false', () => {
+        it('should redirect on url and path has no trailing slash', async () => {
+            const mock = createMock('/foo');
+            await addTrailingSlashes({defer: false})(mock.ctx, mock.next);
+
             expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo/');
-            expect(mock.this.status).toBe(301);
+            expect(mock.ctx.status).toBe(301);
         });
     });
 
-    describe('chained = false', function() {
-        it('should not redirect on url that already have been modified', function() {
-            var mock = createMock('/fOo');
+    describe('chained = false', () => {
+        it('should not redirect on url that already has been modified', async () => {
+            const mock = createMock('/fOo');
 
             // Mock that something has made a redirect before us
-            mock.this.status = 301;
-            mock.this.body = 'Redirecting to …';
-            mock.this.response = {
-                get: function() {
-                    return '/foo';
-                }
+            mock.ctx.status = 301;
+            mock.ctx.body = 'Redirecting to …';
+            mock.ctx.response = {
+                get: () => '/foo'
             };
 
-            var addTrailingSlashesMock = addTrailingSlashes({chained: false}).bind(mock.this);
-            var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-            addTrailingSlashesMockGenerator.next();
-            addTrailingSlashesMockGenerator.next();
+            await addTrailingSlashes({chained: false})(mock.ctx, mock.next);
+
             expect(mock.redirectMock).toNotHaveBeenCalled();
-            expect(mock.this.status).toBe(301);
+            expect(mock.ctx.status).toBe(301);
         });
     });
 
-    describe('chained = true & defer = true', function() {
-        describe('redirect', function() {
-            it('should redirect on url that already have been modified and path has no trailing slash', function() {
-                var mock = createMock('/fOo');
+    describe('chained = true & defer = true', () => {
+        describe('redirect', () => {
+            it('should redirect on url that already has been modified and path has no trailing slash', async () => {
+                const mock = createMock('/fOo');
 
                 // Mock that something has made a redirect before us
-                mock.this.status = 301;
-                mock.this.body = 'Redirecting to …';
-                mock.this.response = {
-                    get: function() {
-                        return '/foo';
-                    }
+                mock.ctx.status = 301;
+                mock.ctx.body = 'Redirecting to …';
+                mock.ctx.response = {
+                    get: () => '/foo'
                 };
 
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo/');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect on url and path has no trailing slash', function() {
-                var mock = createMock('/foo');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+            it('should redirect on url and path has no trailing slash', async () => {
+                const mock = createMock('/foo');
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo/');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect on url with query and path has no trailing slash', function() {
-                var mock = createMock('/foo?hello=world', 'hello=world');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+            it('should redirect on url with query and path has no trailing slash', async () => {
+                const mock = createMock('/foo?hello=world', 'hello=world');
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo/?hello=world');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
 
-            it('should redirect when file is index.html, from koa-static', function() {
-                var mock = createMock('/foo');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                mock.this.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
-                mock.this.status = 200;
-                addTrailingSlashesMockGenerator.next();
+            it('should redirect when file is index.html, from koa-static', async () => {
+                const mock = createMock('/foo');
+                mock.ctx.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
+                mock.ctx.status = 200;
+
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock.calls[0].arguments[0]).toEqual('/foo/');
-                expect(mock.this.status).toBe(301);
+                expect(mock.ctx.status).toBe(301);
             });
         });
 
-        describe('not redirect', function() {
-            it('should not redirect on url that is the root', function() {
-                var mock = createMock('/');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+        describe('not redirect', () => {
+            it('should not redirect on url that is the root', async () => {
+                const mock = createMock('/');
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(undefined);
+                expect(mock.ctx.status).toBe(undefined);
             });
 
-            it('should not redirect on url and path has trailing slash', function() {
-                var mock = createMock('/foo/');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+            it('should not redirect on url and path has trailing slash', async () => {
+                const mock = createMock('/foo/');
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(undefined);
+                expect(mock.ctx.status).toBe(undefined);
             });
 
-            it('should not redirect on url with query and path has trailing slash', function() {
-                var mock = createMock('/foo/?hello=world', '/foo/?hello=world');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                addTrailingSlashesMockGenerator.next();
+            it('should not redirect on url with query and path has trailing slash', async () => {
+                const mock = createMock('/foo/?hello=world', '/foo/?hello=world');
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(undefined);
+                expect(mock.ctx.status).toBe(undefined);
             });
 
-            it('should not redirect when body is defined', function() {
-                var mock = createMock('/bar/foo');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                mock.this.body = 'some content';
-                mock.this.status = 200;
-                addTrailingSlashesMockGenerator.next();
+            it('should not redirect when body is defined', async () => {
+                const mock = createMock('/bar/foo');
+                mock.ctx.body = 'some content';
+                mock.ctx.status = 200;
+
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(200);
+                expect(mock.ctx.status).toBe(200);
             });
 
-            it('should not redirect when the file and path is index.html, from koa-static', function() {
-                var mock = createMock('/foo/index.html');
-                var addTrailingSlashesMock = addTrailingSlashes().bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                mock.this.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
-                mock.this.status = 200;
-                addTrailingSlashesMockGenerator.next();
+            it('should not redirect when the file and path is index.html, from koa-static', async () => {
+                const mock = createMock('/foo/index.html');
+                mock.ctx.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
+                mock.ctx.status = 200;
+
+                await addTrailingSlashes()(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(200);
+                expect(mock.ctx.status).toBe(200);
             });
 
-            it('should not redirect when file is index.html, from koa-static, and options set to false', function() {
-                var mock = createMock('/foo');
-                var addTrailingSlashesMock = addTrailingSlashes({index: false}).bind(mock.this);
-                var addTrailingSlashesMockGenerator = addTrailingSlashesMock();
-                addTrailingSlashesMockGenerator.next();
-                mock.this.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
-                mock.this.status = 200;
-                addTrailingSlashesMockGenerator.next();
+            it('should not redirect when file is index.html, from koa-static, and options set to false', async () => {
+                const mock = createMock('/foo');
+                mock.ctx.body = {content: 'some content', path: '/some/path/that/is/served/index.html'};
+                mock.ctx.status = 200;
+
+                await addTrailingSlashes({index: false})(mock.ctx, mock.next);
+
                 expect(mock.redirectMock).toNotHaveBeenCalled();
-                expect(mock.this.status).toBe(200);
+                expect(mock.ctx.status).toBe(200);
             });
         });
     });
@@ -164,14 +141,15 @@ describe('koa-add-trailing-slashes', function() {
 
 function createMock(originalUrl, querystring) {
     querystring = querystring || '';
-    var redirectMock = expect.createSpy();
+    const redirectMock = expect.createSpy();
     return {
-        redirectMock: redirectMock,
-        this: {
+        redirectMock,
+        ctx: {
             querystring: querystring,
             originalUrl: originalUrl,
             status: undefined,
             redirect: redirectMock
-        }
+        },
+        next: async () => {}
     };
 }
